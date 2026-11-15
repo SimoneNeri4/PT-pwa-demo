@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Coach Board, demo</title>
+<meta name="theme-color" content="#14161A">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#14161A;--panel:#1D2025;--line:#2B3037;--text:#ECEAE4;--mute:#8F959E;--acc:#5B8CFF;--acc-ink:#0B1020;--err:#FF6B6B;
+--head:"Barlow Condensed","Arial Narrow",sans-serif;--body:"Barlow",system-ui,sans-serif}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--text);font:16px/1.5 var(--body);color-scheme:dark}
+body{min-height:100vh;padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom)}
+.demo{background:var(--panel);border-bottom:1px solid var(--line);color:var(--mute);font-size:13px;text-align:center;padding:8px 12px}
+.wrap{max-width:720px;margin:0 auto;padding:20px 18px 60px}
+h1,h2{font-family:var(--head);font-weight:700;letter-spacing:.01em;margin:0;line-height:1.05}
+h1{font-size:44px}h2{font-size:28px}
+.bar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:26px}
+.mute{color:var(--mute)}
+input,textarea{width:100%;background:var(--panel);border:1px solid var(--line);color:var(--text);border-radius:8px;padding:12px 14px;font:inherit}
+textarea{resize:vertical;min-height:90px;line-height:1.55}
+input:focus,textarea:focus,button:focus-visible,.car:focus-visible{outline:2px solid var(--acc);outline-offset:1px}
+label{display:block;font-size:14px;color:var(--mute);margin:18px 0 6px}
+button{font:600 16px var(--body);border:0;border-radius:8px;padding:12px 18px;cursor:pointer;background:var(--acc);color:var(--acc-ink)}
+button.ghost{background:transparent;color:var(--text);border:1px solid var(--line)}
+button.sm{padding:6px 12px;font-size:14px}
+.row{display:flex;gap:10px}
+.list{display:grid;gap:10px;margin-top:22px}
+.item{display:flex;justify-content:space-between;align-items:center;width:100%;text-align:left;background:var(--panel);color:var(--text);border:1px solid var(--line);padding:16px}
+.item small{color:var(--mute);display:block}
+.day{background:var(--panel);border-left:4px solid var(--acc);border-radius:0 8px 8px 0;padding:16px 18px 18px;margin-top:16px}
+.day h2{margin-bottom:12px}
+.notes{white-space:pre-wrap;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:16px;margin:6px 0 0}
+.stage{position:relative}
+.car{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;border-radius:8px;background:var(--bg)}
+.car::-webkit-scrollbar{display:none}
+.car img{flex:0 0 100%;width:100%;aspect-ratio:4/3;object-fit:cover;scroll-snap-align:start;display:block}
+.nav{position:absolute;top:50%;transform:translateY(-50%);width:40px;height:40px;padding:0;border-radius:50%;background:rgba(20,22,26,.75);color:var(--text);font-size:26px;line-height:1}
+.nav.prev{left:8px}.nav.next{right:8px}
+@media(hover:none){.nav{display:none}}
+.meta{display:flex;justify-content:space-between;align-items:center;margin-top:12px;font-size:14px;color:var(--mute)}
+.dots{display:flex;gap:6px}.dots i{width:8px;height:8px;border-radius:50%;background:var(--line)}.dots i.on{background:var(--acc)}
+.desc{white-space:pre-wrap;margin:10px 0 0;min-height:4.6em}
+.fade{animation:f .25s}@keyframes f{from{opacity:0;transform:translateY(4px)}}
+.dayblock{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:4px 16px 18px;margin-top:20px}
+.dayblock input,.dayblock textarea{background:var(--bg)}
+.dayhead{display:flex;align-items:flex-end;justify-content:space-between;gap:10px}
+.ex{display:flex;gap:12px;margin-top:14px;align-items:flex-start}
+.ex img{width:96px;aspect-ratio:4/3;object-fit:cover;border-radius:6px;flex:none}
+.ex>div{flex:1;display:grid;gap:8px;justify-items:start}
+.addph{display:block;text-align:center;border:1px dashed var(--line);border-radius:8px;padding:12px;margin-top:14px;cursor:pointer;color:var(--acc);font-weight:600}
+.exr{background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:12px;margin-top:14px}
+.exh{display:flex;align-items:center;gap:10px}.exh img{width:56px;aspect-ratio:4/3;object-fit:cover;border-radius:6px}.exh strong{flex:1}
+.g3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.g3 label{margin:10px 0 0}
+.exr input{background:var(--panel)}.exr .no{margin-top:10px}
+.seg{display:flex;gap:8px}.seg button.on,.chip.on{background:var(--acc);color:var(--acc-ink);border-color:var(--acc)}
+#map{max-width:260px;margin:18px auto 0}
+#map svg{width:100%;height:auto;display:block}
+.mz{fill:#3A414B;cursor:pointer;transition:fill .15s}.mz:hover{fill:#6C8FE0}.mz.on{fill:var(--acc)}.mz:focus-visible{outline:2px solid var(--text)}
+#chips{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:16px}
+.chip{padding:6px 12px;font-size:14px;background:transparent;color:var(--text);border:1px solid var(--line)}
+.pk{display:flex;gap:12px;align-items:center;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:10px}
+.pk img{width:84px;aspect-ratio:4/3;object-fit:cover;border-radius:6px;flex:none}
+.pk .nm{flex:1;font-weight:600}.pk .nm small{display:block;color:var(--mute);font-weight:400}
+.pk .bt{display:grid;gap:6px}.pk .ph{text-align:center;cursor:pointer;border:1px solid var(--line);border-radius:8px;padding:5px 10px;font-size:14px}
+.sticky{position:sticky;bottom:0;background:linear-gradient(transparent,var(--bg) 35%);padding:26px 0 14px;margin-top:10px}
+.sticky button{width:100%;padding:15px}
+.hide{display:none!important}
+#toast{position:fixed;left:50%;bottom:28px;transform:translateX(-50%);background:var(--text);color:var(--bg);padding:12px 20px;border-radius:8px;font-weight:600;opacity:0;pointer-events:none;transition:opacity .2s;max-width:90vw}
+#toast.on{opacity:1}
+.auth{max-width:380px;margin:8vh auto 0}
+.err{color:var(--err);min-height:22px;margin:12px 0 0;font-size:14px}
+.cred{display:flex;justify-content:space-between;align-items:center;gap:12px;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px 14px}.cred strong{display:block}.cred small{color:var(--mute);font-size:13px;line-height:1.4;display:block}.cred button{padding:10px 14px;font-size:15px;white-space:nowrap}
+.quick{display:grid;gap:10px;margin-top:26px;padding-top:22px;border-top:1px solid var(--line)}
+@media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}.car{scroll-behavior:auto}}
+</style>
+</head>
+<body>
+<div class="demo">Versione dimostrativa con dati di prova: nulla viene salvato, ricaricando la pagina si riparte da zero.</div>
+<main class="wrap">
+
+<section id="v-login" class="auth">
+  <h1>Coach Board</h1>
+  <p class="mute">Accedi con l’username e la password che ti ha dato il tuo trainer.</p>
+  <label for="u">Username</label><input id="u" autocomplete="off" autocapitalize="none" spellcheck="false">
+  <label for="p">Password</label><input id="p" type="password" autocomplete="off">
+  <p class="err" id="lerr"></p>
+  <button id="lbtn" style="width:100%">Accedi</button>
+  <div class="quick">
+    <span class="mute" style="font-size:14px">Demo: scegli come entrare</span>
+    <div class="cred"><div><strong>Personal Trainer</strong><small>Username: coach<br>Password: palestra2026</small></div><button id="goPT">Accedi come PT</button></div>
+    <div class="cred"><div><strong>Atleta</strong><small>Username: marco.r<br>Password: marco123</small></div><button id="goAth">Accedi come atleta</button></div>
+  </div>
+</section>
+
+<section id="v-pt" class="hide">
+  <div class="bar"><h1>I tuoi atleti</h1><button class="ghost" data-logout>Esci</button></div>
+  <h2>Nuovo atleta</h2>
+  <label for="aName">Nome e cognome</label><input id="aName" autocomplete="off">
+  <div class="row"><div style="flex:1"><label for="aUser">Username</label><input id="aUser" autocomplete="off"></div>
+  <div style="flex:1"><label for="aPass">Password</label><input id="aPass" autocomplete="off"></div></div>
+  <p class="err" id="addErr"></p>
+  <button id="addBtn">Crea atleta</button>
+  <div class="list" id="athList"></div>
+</section>
+
+<section id="v-edit" class="hide">
+  <div class="bar"><button class="ghost" id="back">Indietro</button><button class="ghost" id="asAth">Vedi come atleta</button></div>
+  <h1 id="editName"></h1>
+  <p class="mute" id="saved" style="margin:6px 0 0"></p>
+  <label for="f-note">Note generali</label><textarea id="f-note" style="min-height:110px"></textarea>
+  <div id="days"></div>
+  <button class="ghost" id="addDay" style="width:100%;margin-top:22px">+ Aggiungi giorno</button>
+  <div class="sticky"><button id="saveBtn">Salva e invia scheda</button></div>
+</section>
+
+<section id="v-ath" class="hide">
+  <div class="bar"><h1 id="athHello"></h1><button class="ghost" id="athExit">Esci</button></div>
+  <div id="athBody"></div>
+</section>
+
+</main>
+<div id="toast" role="status"></div>
+
+<script>
+const $ = s => document.querySelector(s);
+const ago = d => d ? 'Aggiornata ' + (Date.now() - d < 60000 ? 'adesso' : d.toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'})) : '';
+const ph = (t,h) => 'data:image/svg+xml;utf8,' + encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="hsl(${h},45%,28%)"/><stop offset="1" stop-color="hsl(${h},50%,14%)"/></linearGradient></defs><rect width="800" height="600" fill="url(#g)"/><g fill="hsl(${h},70%,75%)"><rect x="170" y="240" width="40" height="120" rx="8"/><rect x="220" y="210" width="40" height="180" rx="8"/><rect x="540" y="210" width="40" height="180" rx="8"/><rect x="590" y="240" width="40" height="120" rx="8"/><rect x="260" y="290" width="280" height="20"/></g><text x="400" y="480" text-anchor="middle" font-family="Arial,sans-serif" font-size="46" font-weight="700" fill="#fff">${t}</text></svg>`);
+const E = (t,h,d) => ({ img:ph(t,h), desc:t + '\n' + d });
+let data = [
+  { id:1, nome:'Marco Rossi', user:'marco.r', pass:'marco123', upd:new Date(Date.now()-86400000),
+    note:'Scalda sempre 10 minuti prima di iniziare.\nBevi almeno 2 litri d’acqua nei giorni di allenamento.\nSe senti dolore alla spalla, fermati e scrivimi.',
+    giorni:[
+      { titolo:'Spinta', es:[E('Panca piana',220,'4 serie x 8 ripetizioni\nPeso: 60 kg, recupero 90 secondi\nScendi piano, spingi forte.'),E('Military press',200,'3 serie x 10 ripetizioni\nPeso: 30 kg, recupero 75 secondi\nAddome stretto, niente slancio.'),E('Dip alle parallele',240,'3 serie x 8 ripetizioni\nPeso: corpo libero, recupero 90 secondi')] },
+      { titolo:'Gambe', es:[E('Squat',10,'4 serie x 8 ripetizioni\nPeso: 80 kg, recupero 2 minuti\nSchiena dritta, scendi sotto il parallelo.'),E('Affondi camminati',30,'3 serie x 12 per gamba\nPeso: 12 kg per mano, recupero 90 secondi'),E('Leg curl',50,'3 serie x 12 ripetizioni\nPeso: 35 kg, recupero 60 secondi')] },
+      { titolo:'Schiena e core', es:[E('Trazioni',150,'4 serie x 6 ripetizioni\nPeso: corpo libero, recupero 2 minuti'),E('Rematore col bilanciere',170,'4 serie x 8 ripetizioni\nPeso: 50 kg, recupero 90 secondi'),E('Plank',190,'3 serie x 45 secondi\nRecupero 45 secondi')] }
+    ] },
+  { id:2, nome:'Giulia Bianchi', user:'giulia.b', pass:'giulia123', upd:new Date(Date.now()-3*86400000),
+    note:'Focus su tecnica e mobilità.',
+    giorni:[{ titolo:'Full body A', es:[E('Goblet squat',100,'3 serie x 12 ripetizioni\nPeso: 14 kg'),E('Panca manubri',280,'3 serie x 10 ripetizioni\nPeso: 10 kg per mano')] },{ titolo:'Cardio', es:[E('Corsa leggera',120,'30 minuti a ritmo conversazione')] }] },
+  { id:3, nome:'Luca Verdi', user:'luca.v', pass:'luca1234', upd:null, note:'', giorni:[] }
+];
+let cur = null, from = 'login';
+
+function show(id){ ['login','pt','edit','ath'].forEach(v => $('#v-'+v).classList.toggle('hide', v !== id)); window.scrollTo(0,0); }
+function toast(t){ const e = $('#toast'); e.textContent = t; e.classList.add('on'); clearTimeout(toast.t); toast.t = setTimeout(() => e.classList.remove('on'), 2400); }
+
+/* Accesso */
+$('#goPT').onclick = () => { $('#u').value = 'coach'; $('#p').value = 'palestra2026'; $('#lbtn').click(); };
+$('#goAth').onclick = () => { $('#u').value = 'marco.r'; $('#p').value = 'marco123'; $('#lbtn').click(); };
+function toLogin(){ $('#u').value = ''; $('#p').value = ''; $('#lerr').textContent = ''; show('login'); }
+$('#lbtn').onclick = () => {
+  const u = $('#u').value.trim().toLowerCase(), p = $('#p').value, a = data.find(x => x.user === u);
+  if (u === 'coach' && p === 'palestra2026') { from = 'login'; return ptHome(); }
+  if (a && a.pass === p) { from = 'login'; return athHome(a); }
+  $('#lerr').textContent = 'Username o password non corretti.';
+};
+document.querySelectorAll('[data-logout]').forEach(b => b.onclick = toLogin);
+$('#athExit').onclick = () => from === 'pt' ? openEdit(cur) : toLogin();
+
+/* Trainer */
+function ptHome(){
+  show('pt');
+  const box = $('#athList'); box.textContent = '';
+  data.forEach(a => {
+    const b = document.createElement('button'); b.className = 'item';
+    b.innerHTML = '<span><strong></strong><small></small></span><small></small>';
+    b.querySelector('strong').textContent = a.nome;
+    const sm = b.querySelectorAll('small'); sm[0].textContent = '@' + a.user; sm[1].textContent = a.upd ? ago(a.upd) : 'Scheda vuota';
+    b.onclick = () => openEdit(a); box.appendChild(b);
+  });
+}
+$('#addBtn').onclick = () => {
+  const nome = $('#aName').value.trim(), user = $('#aUser').value.trim().toLowerCase(), pass = $('#aPass').value, err = $('#addErr');
+  err.textContent = '';
+  if (!nome) return err.textContent = 'Inserisci il nome dell’atleta.';
+  if (!/^[a-z0-9._-]{3,20}$/.test(user)) return err.textContent = 'Username: da 3 a 20 caratteri, solo lettere, numeri, punto e trattino.';
+  if (pass.length < 6) return err.textContent = 'La password deve avere almeno 6 caratteri.';
+  if (data.some(a => a.user === user)) return err.textContent = 'Questo username è già in uso.';
+  data.push({ id:Date.now(), nome, user, pass, upd:null, note:'', giorni:[] });
+  ['aName','aUser','aPass'].forEach(i => $('#'+i).value = '');
+  toast('Atleta creato. Esci e accedi come ' + user + ' per provarlo.'); ptHome();
+};
+
+/* Editor scheda: giorni, foto e descrizioni */
+const daysBox = $('#days');
+const renum = () => [...daysBox.children].forEach((d,i) => d.querySelector('.num').textContent = i + 1);
+const shrink = f => new Promise(res => { const r = new FileReader(); r.onload = () => { const i = new Image(); i.onload = () => {
+  const k = Math.min(1, 800 / Math.max(i.width, i.height)), c = document.createElement('canvas');
+  c.width = i.width * k; c.height = i.height * k; c.getContext('2d').drawImage(i, 0, 0, c.width, c.height); res(c.toDataURL('image/jpeg', .7)); }; i.src = r.result; }; r.readAsDataURL(f); });
+function exRow(img, desc){
+  const r = document.createElement('div'); r.className = 'ex';
+  r.innerHTML = '<img alt="Foto esercizio"><div><textarea aria-label="Descrizione sotto la foto" placeholder="Es. Squat, 4 serie x 8 ripetizioni, 80 kg, recupero 2 minuti"></textarea><button type="button" class="ghost sm">Elimina foto</button></div>';
+  r.querySelector('img').src = img; r.querySelector('textarea').value = desc;
+  r.querySelector('button').onclick = () => r.remove(); return r;
+}
+function dayBlock(g){
+  const d = document.createElement('div'); d.className = 'dayblock';
+  d.innerHTML = '<div class="dayhead"><label>Titolo giorno <span class="num"></span></label><button type="button" class="ghost sm rm">Elimina giorno</button></div><input class="t" aria-label="Titolo del giorno"><div class="exs"></div><label class="addph">+ Aggiungi foto<input type="file" accept="image/*" multiple hidden></label>';
+  d.querySelector('.t').value = g.titolo;
+  const exs = d.querySelector('.exs'); g.es.forEach(e => exs.appendChild(exRow(e.img, e.desc)));
+  d.querySelector('.rm').onclick = () => { if (confirm('Eliminare questo giorno?')) { d.remove(); renum(); } };
+  const inp = d.querySelector('input[type=file]');
+  inp.onchange = async () => { for (const f of [...inp.files]) exs.appendChild(exRow(await shrink(f), '')); inp.value = ''; };
+  daysBox.appendChild(d); renum(); return d;
+}
+$('#addDay').onclick = () => { const d = dayBlock({ titolo:'Giorno ' + (daysBox.children.length + 1), es:[] }); d.querySelector('.t').focus(); d.scrollIntoView({ behavior:'smooth', block:'center' }); };
+function openEdit(a){
+  cur = a; show('edit');
+  $('#editName').textContent = a.nome; $('#f-note').value = a.note;
+  daysBox.textContent = ''; (a.giorni.length ? a.giorni : [{ titolo:'Giorno 1', es:[] }]).forEach(dayBlock);
+  $('#saved').textContent = a.upd ? 'Ultimo invio: ' + a.upd.toLocaleString('it-IT',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}) : 'Scheda ancora vuota';
+}
+$('#back').onclick = ptHome;
+$('#saveBtn').onclick = () => {
+  cur.note = $('#f-note').value;
+  cur.giorni = [...daysBox.children].map(d => ({ titolo:d.querySelector('.t').value.trim(),
+    es:[...d.querySelectorAll('.ex')].map(r => ({ img:r.querySelector('img').src, desc:r.querySelector('textarea').value })) })).filter(g => g.titolo || g.es.length);
+  cur.upd = new Date(); $('#saved').textContent = 'Appena inviata';
+  toast('Scheda inviata! Prova “Vedi come atleta”.');
+};
+$('#asAth').onclick = () => { $('#saveBtn').click(); from = 'pt'; athHome(cur); };
+
+/* Atleta: foto che scorrono, la descrizione cambia con la foto */
+function carousel(es){
+  const w = document.createElement('div');
+  w.innerHTML = '<div class="stage"><div class="car" tabindex="0" aria-label="Esercizi, scorri di lato"></div><button class="nav prev" aria-label="Precedente">‹</button><button class="nav next" aria-label="Successivo">›</button></div><div class="meta"><span class="cnt"></span><span class="dots"></span></div><p class="desc" aria-live="polite"></p>';
+  const car = w.querySelector('.car'), desc = w.querySelector('.desc'), cnt = w.querySelector('.cnt'), dots = w.querySelector('.dots');
+  es.forEach((e,i) => { const im = document.createElement('img'); im.src = e.img; im.alt = 'Esercizio ' + (i+1); car.appendChild(im); dots.appendChild(document.createElement('i')); });
+  let now = -1;
+  const upd = () => {
+    const i = Math.max(0, Math.min(es.length - 1, car.clientWidth ? Math.round(car.scrollLeft / car.clientWidth) : 0));
+    if (i === now) return; now = i;
+    desc.textContent = es[i].desc; cnt.textContent = (i+1) + ' di ' + es.length;
+    [...dots.children].forEach((d,k) => d.classList.toggle('on', k === i));
+    desc.classList.remove('fade'); void desc.offsetWidth; desc.classList.add('fade');
+  };
+  car.addEventListener('scroll', upd);
+  w.querySelector('.prev').onclick = () => car.scrollBy({ left:-car.clientWidth, behavior:'smooth' });
+  w.querySelector('.next').onclick = () => car.scrollBy({ left:car.clientWidth, behavior:'smooth' });
+  upd(); return w;
+}
+function athHome(a){
+  cur = a; show('ath');
+  $('#athHello').textContent = 'Ciao, ' + a.nome.split(' ')[0];
+  $('#athExit').textContent = from === 'pt' ? 'Torna al trainer' : 'Esci';
+  const body = $('#athBody'); body.textContent = '';
+  if (!a.upd) { body.innerHTML = '<p class="mute">Il tuo trainer non ti ha ancora inviato una scheda. Quando succede, la vedi qui.</p>'; return; }
+  const p = document.createElement('p'); p.className = 'mute'; p.textContent = ago(a.upd); body.appendChild(p);
+  if (a.note) { const l = document.createElement('label'); l.textContent = 'Note del trainer'; const n = document.createElement('div'); n.className = 'notes'; n.textContent = a.note; body.append(l, n); }
+  a.giorni.forEach(g => {
+    const s = document.createElement('div'); s.className = 'day';
+    const h = document.createElement('h2'); h.textContent = g.titolo; s.appendChild(h);
+    if (g.es.length) s.appendChild(carousel(g.es)); else { const q = document.createElement('p'); q.className = 'mute'; q.textContent = 'Riposo'; s.appendChild(q); }
+    body.appendChild(s);
+  });
+}
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');
+</script>
+</body>
+</html>
